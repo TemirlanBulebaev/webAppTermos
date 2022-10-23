@@ -2,7 +2,9 @@ package com.example.webApp.services;
 
 import com.example.webApp.models.ImageModel;
 import com.example.webApp.models.ProductModel;
+import com.example.webApp.models.UserModel;
 import com.example.webApp.repositories.ProductRepository;
+import com.example.webApp.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -10,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.channels.MulticastChannel;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository; //
+    private final UserRepository userRepository;
     private List<ProductModel> products = new ArrayList<>();
 
     public List<ProductModel> listProducts(String title) {
@@ -26,7 +30,8 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    public void saveProduct(ProductModel product, MultipartFile file1, MultipartFile file2, MultipartFile file3) throws IOException {
+    public void saveProduct(Principal principal, ProductModel product, MultipartFile file1, MultipartFile file2, MultipartFile file3) throws IOException {
+        product.setUser(getUserByPrincipal(principal));
         ImageModel image1;
         ImageModel image2;
         ImageModel image3;
@@ -44,10 +49,15 @@ public class ProductService {
             product.addImageToProduct(image3);
         }
 
-        log.info("Saving new Product. Title: {}; Author: {}", product.getTitle(), product.getAuthor());
+        log.info("Saving new Product. Title: {}; Author email: {}", product.getTitle(), product.getUser().getEmail());
         ProductModel productFromDb = productRepository.save(product);
         productFromDb.setPreviewImageId(productFromDb.getImages().get(0).getId());
         productRepository.save(product);
+    }
+
+    public UserModel getUserByPrincipal(Principal principal) {
+        if (principal == null) return new UserModel();
+        return userRepository.findByEmail(principal.getName());
     }
 
     private ImageModel toImageEntity(MultipartFile file) throws IOException {

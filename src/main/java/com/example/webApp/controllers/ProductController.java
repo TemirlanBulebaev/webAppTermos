@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
 
 @Controller
 @RequiredArgsConstructor // Заменяет создание конструктора
@@ -20,8 +21,9 @@ public class ProductController {
 
 
     @GetMapping("/")
-    public String products(@RequestParam(name = "title", required = false) String title, Model model) { // Model - для передачи параметров в шаблонизатор
+    public String products(@RequestParam(name = "title", required = false) String title, Principal principal, Model model) { // Model - для передачи параметров в шаблонизатор
         model.addAttribute("products", productService.listProducts(title));
+        model.addAttribute("user", productService.getUserByPrincipal(principal));
         return "products";
     }
 
@@ -37,8 +39,8 @@ public class ProductController {
     public String createProduct(@RequestParam("file1") MultipartFile file1,
                                 @RequestParam("file2") MultipartFile file2,
                                 @RequestParam("file3") MultipartFile file3,
-                                ProductModel product) throws IOException {
-        productService.saveProduct(product, file1, file2, file3);
+                                ProductModel product, Principal principal) throws IOException {
+        productService.saveProduct(principal, product, file1, file2, file3);
         return "redirect:/";
     }
 

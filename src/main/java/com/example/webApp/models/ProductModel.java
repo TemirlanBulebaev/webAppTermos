@@ -32,12 +32,15 @@ public class ProductModel {
     @Column(name = "city")
     private String city;
 
-    @Column(name = "author")
-    private String author;
+//    @Column(name = "author")
+//    private String author;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "product")
     private List<ImageModel> images = new ArrayList<>();
     private Long previewImageId;
+    @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
+    @JoinColumn
+    private UserModel user;
     private LocalDateTime dateOfCreated;
 
     @PrePersist // Инициализация бина
